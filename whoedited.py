@@ -44,7 +44,7 @@ class WhoEditedHandler(osmium.SimpleHandler):
             if n.user == self.osm_username:
                 self.mynodes_ids.add(n.id)
                 if self.shallow:
-                    self.relations_out[n.id] = []
+                    self.nodes_out[n.id] = []
                 if self.includemine:
                     self.make_summary(n, self.nodes_out)
             elif n.id in self.mynodes_ids:
@@ -57,7 +57,7 @@ class WhoEditedHandler(osmium.SimpleHandler):
             if w.user == self.osm_username:
                 self.myways_ids.add(w.id)
                 if self.shallow:
-                    self.relations_out[w.id] = []
+                    self.ways_out[w.id] = []
                 if self.includemine:
                     self.make_summary(w, self.ways_out)
             elif w.id in self.myways_ids:
