@@ -10,7 +10,7 @@ import osmium
 
 
 class WhoEditedHandler(osmium.SimpleHandler):
-    def __init__(self, osm_username, keys, nodes=True, ways=True, relations=True):
+    def __init__(self, osm_username, keys, nodes=True, ways=True, relations=True, includemine=True):
         osmium.SimpleHandler.__init__(self)
         self.osm_username = osm_username
         self.keys = keys
@@ -26,6 +26,7 @@ class WhoEditedHandler(osmium.SimpleHandler):
         if relations:
             self.my_edited_relations = set()
             self.other_edited_relations = set()
+        self.includemine = includemine
 
     @staticmethod
     def make_summary(o):
@@ -37,9 +38,10 @@ class WhoEditedHandler(osmium.SimpleHandler):
                 or not self.keys):
             if n.user == self.osm_username:
                 self.my_edited_nodes.add(n.id)
+                if self.includemine:
+                    self.other_edited_nodes.add(self.make_summary(n))
             elif n.id in self.my_edited_nodes:
                 self.other_edited_nodes.add(self.make_summary(n))
-                # self.my_edited_nodes.discard(n.id)
 
     def way(self, w):
         if self.process_ways and (
@@ -47,9 +49,10 @@ class WhoEditedHandler(osmium.SimpleHandler):
                 or not self.keys):
             if w.user == self.osm_username:
                 self.my_edited_ways.add(w.id)
+                if self.includemine:
+                    self.other_edited_ways.add(self.make_summary(w))
             elif w.id in self.my_edited_ways:
                 self.other_edited_ways.add(self.make_summary(w))
-                # self.my_edited_ways.discard(w.id)
 
     def relation(self, r):
         if self.process_relations and (
@@ -57,9 +60,10 @@ class WhoEditedHandler(osmium.SimpleHandler):
                 or not self.keys):
             if r.user == self.osm_username:
                 self.my_edited_relations.add(r.id)
+                if self.includemine:
+                    self.other_edited_relations.add(self.make_summary(r))
             elif r.id in self.my_edited_relations:
                 self.other_edited_relations.add(self.make_summary(r))
-                # self.my_edited_relations.discard(r.id)
 
 
 def main():
@@ -75,6 +79,8 @@ def main():
                         help='Do not output ways')
     parser.add_argument('--skiprelations', action='store_true',
                         help='Do not output relations')
+    parser.add_argument('--includemine', action='store_true',
+                        help='Do not output relations')
 
     args = parser.parse_args()
 
@@ -87,7 +93,8 @@ def main():
         keys,
         not args.skipnodes,
         not args.skipways,
-        not args.skiprelations)
+        not args.skiprelations,
+        args.includemine)
     osmium_handler.apply_file(args.pbf_history_file)
 
     # write out result files
